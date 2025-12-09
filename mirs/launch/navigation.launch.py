@@ -13,19 +13,22 @@ def generate_launch_description():
     # 2. Nav2 パッケージの 'share' ディレクトリへのパス
     nav2_bringup_dir = get_package_share_directory('nav2_bringup')
 
+    # --- 引数の定義 ---
+    # マップファイルのデフォルトパス (パッケージ内の maps/my_mirs_map.yaml)
+    default_map_path = os.path.join(mirs_share_dir, 'maps', 'my_mirs_map.yaml')
+    
+    map_yaml_file = DeclareLaunchArgument(
+        'map',
+        default_value=default_map_path,
+        description='Full path to map file to load'
+    )
+
     # 3. MIRS本体のハードウェア（odom, /scan, micro-ros, TF）を起動
     # (以前 T1 で実行していた mirs.launch.py をインクルードする)
     mirs_hardware_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(mirs_share_dir, 'launch', 'mirs.launch.py')
         )
-    )
-
-    # 4. 保存したマップファイルへの絶対パス
-    # (前回 'my_mirs_map' という名前で保存したと仮定)
-    map_file_path = os.path.join(
-        '/home/sawara/mirs_ws', # ★注意: '~/mirs_ws' ではなく絶対パスで指定
-        'my_mirs_map.yaml'
     )
 
     # 5. Nav2 の設定ファイル（デフォルトのものを使用）
@@ -45,9 +48,9 @@ def generate_launch_description():
         ),
         # Nav2に渡す引数
         launch_arguments={
-            'map': map_file_path,          # 読み込むマップを指定
-            'use_sim_time': 'False',       # 実機ロボットを使う
-            'params_file': nav2_params_file, # Nav2の設定ファイルを指定
+            'map': LaunchConfiguration('map'), # 引数で指定されたマップを使用
+            'use_sim_time': 'False',           # 実機ロボットを使う
+            'params_file': nav2_params_file,   # Nav2の設定ファイルを指定
         }.items()
     )
 
@@ -63,6 +66,7 @@ def generate_launch_description():
 
     # 9. 起動するものをリストにして返す
     return LaunchDescription([
+        map_yaml_file,         # マップ引数
         mirs_hardware_launch,  # MIRS本体 (T1の代わり)
         nav2_bringup_launch,   # Nav2本体 (T2の代わり)
         rviz_node              # Rviz (T3の代わり)

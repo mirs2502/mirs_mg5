@@ -71,12 +71,8 @@ install(DIRECTORY
   config
   launch
   rviz
+  maps
   DESTINATION share/${PROJECT_NAME}/
-)
-
-install(
-  DIRECTORY config launch  # configとlaunchフォルダをインストール対象にする
-  DESTINATION share/${PROJECT_NAME}
 )
 
 ament_package()
