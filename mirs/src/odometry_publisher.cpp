@@ -119,7 +119,9 @@ private:
         odom_tf.transform.rotation.z = q.z();
         odom_tf.transform.rotation.w = q.w();
 
-        tf_broadcaster_->sendTransform(odom_tf);
+	// robot_rocalization内でTFを配信するためここではコメントアウト
+        // tf_broadcaster_->sendTransform(odom_tf);
+
     }
 
     // サブスクライバーとパブリッシャー
