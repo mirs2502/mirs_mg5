@@ -26,7 +26,7 @@ def generate_launch_description():
     config_file_path = os.path.join(pkg_share, 'config', 'config.yaml')
     
     # ★追加: EKF用の設定ファイル (ekf.yaml)
-    ekf_config_path = os.path.join(pkg_share, 'config', 'ekf.yaml')
+    ekf_config_path = os.path.join(pkg_share, 'config', 'ekf_params.yaml')
 
     # --- ノードの定義 ---
 
