@@ -67,6 +67,12 @@ install(TARGETS
   DESTINATION lib/${PROJECT_NAME}
 )
 
+install(PROGRAMS
+  scripts/odom_linear_test.py
+  scripts/odom_rotate_test.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 install(DIRECTORY
   config
   launch

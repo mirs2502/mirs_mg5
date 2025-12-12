@@ -21,17 +21,4 @@ ekf_filter_node:
     odom0_differential: false
     odom0_relative: false
 
-    # --- 入力2: 自作ノードからのランドマーク位置推定 ---
-    # 役割: 位置ズレと累積誤差の補正 (IMUの代わりにもなる)
-    pose0: /landmark_pose   # 自作ノードがPublishするトピック名
-    
-    # 絶対位置 (X, Y) と 方位 (Yaw) を修正します
-    pose0_config: [true,  true,  false,   # X, Y (地図上の位置)
-                   false, false, true,    # Yaw (地図上の向き)
-                   false, false, false,
-                   false, false, false,
-                   false, false, false]
-    
-    # ランドマークは絶対座標なので differential は false
-    pose0_differential: false
-    pose0_relative: false
+    # --- 入力2: 削除 (Local EKFはエンコーダのみで滑らかさを重視) ---

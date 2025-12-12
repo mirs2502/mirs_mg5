@@ -27,6 +27,7 @@ def generate_launch_description():
     
     # ★追加: EKF用の設定ファイル (ekf.yaml)
     ekf_config_path = os.path.join(pkg_share, 'config', 'ekf_params.yaml')
+    ekf_global_config_path = os.path.join(pkg_share, 'config', 'ekf_global_params.yaml')
 
     # --- ノードの定義 ---
 
@@ -62,26 +63,55 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory('sllidar_ros2'), 'launch', 'sllidar_s1_launch.py')
         ),
-        launch_arguments={'serial_port': LaunchConfiguration('lidar_port')}.items()
+        launch_arguments={'serial_port': LaunchConfiguration('lidar_port'), 'serial_baudrate': '256000'}.items()
     )
 
     # 5. Static TF (Base Link -> Laser)
-    tf2_ros_node = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
+    # URDFを使うためコメントアウト
+    # tf2_ros_node = Node(
+    #     package='tf2_ros',
+    #     executable='static_transform_publisher',
+    #     output='screen',
+    #     arguments=["0", "0", "0.3", "0", "0", "0", "base_link", "laser"]
+    # )
+
+    # ★追加: Robot State Publisher (URDF)
+    urdf_file_name = 'mirs.urdf'
+    urdf_path = os.path.join(
+        get_package_share_directory('mirs_description'),
+        'urdf',
+        urdf_file_name)
+    with open(urdf_path, 'r') as infp:
+        robot_desc = infp.read()
+
+    robot_state_publisher_node = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        name='robot_state_publisher',
         output='screen',
-        arguments=["0", "0", "0.3", "0", "0", "0", "base_link", "laser"]
+        parameters=[{'robot_description': robot_desc}],
     )
 
-    # ★追加: robot_localization (EKF) ノード
-    ekf_node = Node(
+    # ★追加: robot_localization (EKF) ノード x2
+
+    # Local EKF (odom -> base_link)
+    ekf_node_local = Node(
         package='robot_localization',
         executable='ekf_node',
-        name='ekf_filter_node',
+        name='ekf_filter_node_local',
         output='screen',
         parameters=[ekf_config_path],
-        # 必要な場合はここでトピックのリマップを行います
-        # remappings=[('/odometry/filtered', '/odom_combined')] 
+        remappings=[('/odometry/filtered', '/odometry/local')]
+    )
+
+    # Global EKF (map -> odom)
+    ekf_node_global = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node_global',
+        output='screen',
+        parameters=[ekf_global_config_path],
+        remappings=[('/odometry/filtered', '/odometry/global')]
     )
 
     # --- 起動リストの作成 ---
@@ -94,9 +124,12 @@ def generate_launch_description():
     ld.add_action(parameter_node)
     ld.add_action(micro_ros)
     ld.add_action(sllidar_launch)
-    ld.add_action(tf2_ros_node)
+
+    # ld.add_action(tf2_ros_node)
+    ld.add_action(robot_state_publisher_node)
     
     # ★追加: EKFを起動リストに追加
-    ld.add_action(ekf_node)
+    ld.add_action(ekf_node_local)
+    ld.add_action(ekf_node_global)
 
     return ld
