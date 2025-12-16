@@ -20,6 +20,10 @@ def generate_launch_description():
     lidar_port = DeclareLaunchArgument(
         'lidar_port', default_value='/dev/ttyUSB0',
         description='Set lidar usb port.')
+
+    use_sim_time = DeclareLaunchArgument(
+        'use_sim_time', default_value='false',
+        description='Use simulated clock if true')
     
     # --- 設定ファイルのパス ---
     # 既存の設定ファイル
@@ -37,7 +41,7 @@ def generate_launch_description():
         executable='odometry_publisher',
         name='odometry_publisher',
         output='screen',
-        parameters=[config_file_path]
+        parameters=[config_file_path, {'use_sim_time': LaunchConfiguration('use_sim_time')}]
     )
 
     # 2. パラメータ管理ノード
@@ -46,7 +50,7 @@ def generate_launch_description():
         executable='parameter_publisher',
         name='parameter_publisher',
         output='screen',
-        parameters=[config_file_path]
+        parameters=[config_file_path, {'use_sim_time': LaunchConfiguration('use_sim_time')}]
     )
 
     # 3. Micro-ROS Agent
@@ -89,7 +93,7 @@ def generate_launch_description():
         executable='robot_state_publisher',
         name='robot_state_publisher',
         output='screen',
-        parameters=[{'robot_description': robot_desc}],
+        parameters=[{'robot_description': robot_desc, 'use_sim_time': LaunchConfiguration('use_sim_time')}],
     )
 
     # ★追加: robot_localization (EKF) ノード x2
@@ -100,7 +104,7 @@ def generate_launch_description():
         executable='ekf_node',
         name='ekf_filter_node_local',
         output='screen',
-        parameters=[ekf_config_path],
+        parameters=[ekf_config_path, {'use_sim_time': LaunchConfiguration('use_sim_time')}],
         remappings=[('/odometry/filtered', '/odometry/local')]
     )
 
@@ -110,7 +114,7 @@ def generate_launch_description():
         executable='ekf_node',
         name='ekf_filter_node_global',
         output='screen',
-        parameters=[ekf_global_config_path],
+        parameters=[ekf_global_config_path, {'use_sim_time': LaunchConfiguration('use_sim_time')}],
         remappings=[('/odometry/filtered', '/odometry/global')]
     )
 
@@ -119,6 +123,7 @@ def generate_launch_description():
     
     ld.add_action(esp_port)
     ld.add_action(lidar_port)
+    ld.add_action(use_sim_time)
 
     ld.add_action(odometry_node)
     ld.add_action(parameter_node)
