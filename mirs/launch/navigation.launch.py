@@ -31,9 +31,9 @@ def generate_launch_description():
         )
     )
 
-    # 5. Nav2 の設定ファイル（デフォルトのものを使用）
+    # 5. Nav2 の設定ファイル（mirsパッケージのものを使用）
     nav2_params_file = os.path.join(
-        nav2_bringup_dir, 'config', 'nav2_params.yaml'
+        mirs_share_dir, 'config', 'nav2_params.yaml'
     )
 
     # 6. Rviz の設定ファイル（Nav2標準のものを使用）
