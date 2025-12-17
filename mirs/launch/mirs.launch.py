@@ -133,8 +133,8 @@ def generate_launch_description():
     # ld.add_action(tf2_ros_node)
     ld.add_action(robot_state_publisher_node)
     
-    # ★追加: EKFを起動リストに追加
-    ld.add_action(ekf_node_local)
-    ld.add_action(ekf_node_global)
+    # ★odom-only: EKFを無効化 (純粋なオドメトリのみ使用)
+    # ld.add_action(ekf_node_local)
+    # ld.add_action(ekf_node_global)
 
     return ld

@@ -95,14 +95,15 @@ def generate_launch_description():
     )
 
     # --- 5. 自己位置補正 (Landmark Localizer) ---
+    # ★odom-only: landmark_localizerを無効化
     # Nav2の地図座標系(map)と、認識したコーン配置を照合して補正
-    landmark_localizer_node = Node(
-        package='cone_detector',
-        executable='landmark_localizer',
-        name='landmark_localizer',
-        output='screen',
-        parameters=[{'min_shared_landmarks': 1}]
-    )
+    # landmark_localizer_node = Node(
+    #     package='cone_detector',
+    #     executable='landmark_localizer',
+    #     name='landmark_localizer',
+    #     output='screen',
+    #     parameters=[{'min_shared_landmarks': 1}]
+    # )
 
     return LaunchDescription([
         map_yaml_file,
@@ -113,5 +114,6 @@ def generate_launch_description():
         nav2_bringup_launch,
         camera_node,
         real_mission_launch,
-        landmark_localizer_node
+        # ★odom-only: landmark_localizerを起動しない
+        # landmark_localizer_node
     ])
