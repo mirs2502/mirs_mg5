@@ -52,16 +52,13 @@ def generate_launch_description():
     # --- 2. ナビゲーション (Nav2) ---
     nav2_params_file = os.path.join(nav2_bringup_pkg, 'config', 'nav2_params.yaml')
     
-    # Nav2 Bringup (Navigation + Localization + Rviz)
-    # 注意: mirs.launch.pyでrobot_state_publisherが起動済みだが、
-    # nav2_bringupもデフォルトで起動しようとする。
-    # ここでは既存のnavigation.launch.pyの構成を踏襲し、そのまま起動する。
+    # Nav2 Bringup (Navigation only - No Map Server / AMCL)
+    # マップを使わないため、navigation_launch.py を使用する
     nav2_bringup_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(nav2_bringup_pkg, 'launch', 'bringup_launch.py')
+            os.path.join(nav2_bringup_pkg, 'launch', 'navigation_launch.py')
         ),
         launch_arguments={
-            'map': LaunchConfiguration('map'),
             'use_sim_time': LaunchConfiguration('use_sim_time'),
             'params_file': nav2_params_file,
             # 'use_robot_state_pub': 'False' # 必要に応じて有効化
@@ -76,8 +73,8 @@ def generate_launch_description():
         name='v4l2_camera',
         parameters=[{'video_device': '/dev/video2', 'frame_id': 'camera'}],
         remappings=[
-            ('camera/image_raw', '/camera/color/image_raw'), # real_missionに合わせてリマップ
-            ('camera/camera_info', '/camera/color/camera_info')
+            ('image_raw', '/camera/color/image_raw'), # real_missionに合わせてリマップ
+            ('camera_info', '/camera/color/camera_info')
         ]
     )
 
@@ -90,7 +87,8 @@ def generate_launch_description():
             os.path.join(bt_pkg, 'launch', 'real_mission.launch.py')
         ),
         launch_arguments={
-            'bt_xml_path': LaunchConfiguration('bt_xml_path')
+            'bt_xml_path': LaunchConfiguration('bt_xml_path'),
+            'use_sim_time': LaunchConfiguration('use_sim_time')
         }.items()
     )
 
@@ -104,6 +102,16 @@ def generate_launch_description():
         parameters=[{'min_shared_landmarks': 1}]
     )
 
+    # --- 6. RViz2 ---
+    rviz_config_file = os.path.join(mirs_pkg, 'rviz', 'system_view.rviz')
+    rviz_node = Node(
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        arguments=['-d', rviz_config_file],
+        output='screen'
+    )
+
     return LaunchDescription([
         map_yaml_file,
         bt_xml_arg,
@@ -113,5 +121,6 @@ def generate_launch_description():
         nav2_bringup_launch,
         camera_node,
         real_mission_launch,
-        landmark_localizer_node
+        landmark_localizer_node,
+        rviz_node
     ])
