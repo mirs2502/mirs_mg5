@@ -2,7 +2,7 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
@@ -50,7 +50,7 @@ def generate_launch_description():
     )
 
     # --- 2. ナビゲーション (Nav2) ---
-    nav2_params_file = os.path.join(nav2_bringup_pkg, 'config', 'nav2_params.yaml')
+    nav2_params_file = os.path.join(mirs_pkg, 'config', 'nav2_params.yaml')
     
     # Nav2 Bringup (Navigation only - No Map Server / AMCL)
     # マップを使わないため、navigation_launch.py を使用する
@@ -112,6 +112,12 @@ def generate_launch_description():
         output='screen'
     )
 
+    # Delay Landmark Localizer to wait for TF tree to be ready
+    delayed_landmark_localizer_node = TimerAction(
+        period=5.0,
+        actions=[landmark_localizer_node]
+    )
+
     return LaunchDescription([
         map_yaml_file,
         bt_xml_arg,
@@ -121,6 +127,6 @@ def generate_launch_description():
         nav2_bringup_launch,
         camera_node,
         real_mission_launch,
-        landmark_localizer_node,
+        delayed_landmark_localizer_node,
         rviz_node
     ])
