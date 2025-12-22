@@ -1,0 +1,130 @@
+import os
+
+from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
+
+def generate_launch_description():
+    # --- パッケージディレクトリの取得 ---
+    mirs_pkg = get_package_share_directory('mirs')
+    nav2_bringup_pkg = get_package_share_directory('nav2_bringup')
+    bt_pkg = get_package_share_directory('bt_pkg')
+    cone_detector_pkg = get_package_share_directory('cone_detector')
+
+    # --- 引数の定義 ---
+    # 1. マップファイル (使わないがNav2の引数互換のため)
+    default_map_path = os.path.join(mirs_pkg, 'maps', 'my_mirs_map.yaml')
+    map_yaml_file = DeclareLaunchArgument(
+        'map',
+        default_value=default_map_path,
+        description='Full path to map file to load'
+    )
+
+    # 2. Behavior Tree XML (Odom Only版)
+    default_bt_xml_path = os.path.join(bt_pkg, 'behavior_tree', 'bt_mission_odom_only.xml')
+    bt_xml_arg = DeclareLaunchArgument(
+        'bt_xml_path',
+        default_value=default_bt_xml_path,
+        description='Path to the Behavior Tree XML file'
+    )
+
+    # 3. シミュレーション時刻
+    use_sim_time = DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='false',
+        description='Use simulated clock if true'
+    )
+
+    # --- 1. ハードウェア & 基本システム (mirs.launch.py) ---
+    # EKFパラメータを odom_only 版に差し替えるために、launch引数で上書きする
+    # mirs.launch.py が ekf_config_file 引数を受け取るように修正が必要だが、
+    # 既存ファイルを変更しない方針のため、ここでは mirs.launch.py の中身を展開するか、
+    # あるいは mirs.launch.py がパラメータ引数に対応しているか確認が必要。
+    # 確認したところ mirs.launch.py は ekf_config_path を受け取っていない可能性が高い。
+    # そのため、mirs.launch.py を使わず、ここで個別にノードを立ち上げるか、
+    # mirs.launch.py をコピーして mirs_odom_only.launch.py を作る必要がある。
+    # ここでは安全のため mirs_odom_only.launch.py を作成し、それを呼び出す形にする。
+    
+    # ※ Implementation Plan にはなかったが、mirs.launch.py のパラメータ差し替えが必要なため、
+    # mirs_odom_only.launch.py を作成するステップを追加で行う。
+    
+    mirs_hardware_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(mirs_pkg, 'launch', 'mirs_odom_only.launch.py')
+        ),
+        launch_arguments={
+            'use_sim_time': LaunchConfiguration('use_sim_time')
+        }.items()
+    )
+
+    # --- 2. ナビゲーション (Nav2) ---
+    nav2_params_file = os.path.join(mirs_pkg, 'config', 'nav2_params.yaml')
+    
+    nav2_bringup_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(nav2_bringup_pkg, 'launch', 'navigation_launch.py')
+        ),
+        launch_arguments={
+            'use_sim_time': LaunchConfiguration('use_sim_time'),
+            'params_file': nav2_params_file,
+        }.items()
+    )
+
+    # --- 3. カメラドライバ (v4l2_camera) ---
+    camera_node = Node(
+        package='v4l2_camera',
+        executable='v4l2_camera_node',
+        name='v4l2_camera',
+        parameters=[{'video_device': '/dev/video2', 'frame_id': 'camera'}],
+        remappings=[
+            ('image_raw', '/camera/color/image_raw'),
+            ('camera_info', '/camera/color/camera_info')
+        ]
+    )
+
+    # --- 4. 認識・計画・BT (real_mission.launch.py) ---
+    real_mission_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(bt_pkg, 'launch', 'real_mission.launch.py')
+        ),
+        launch_arguments={
+            'bt_xml_path': LaunchConfiguration('bt_xml_path'),
+            'use_sim_time': LaunchConfiguration('use_sim_time')
+        }.items()
+    )
+
+    # --- 5. Static TF (map -> odom) ---
+    # オドメトリのみで動かすため、mapとodomを一致させる
+    static_tf_map_odom = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_transform_publisher_map_odom',
+        arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
+    )
+
+    # --- 6. RViz2 ---
+    rviz_config_file = os.path.join(mirs_pkg, 'rviz', 'system_view.rviz')
+    rviz_node = Node(
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        arguments=['-d', rviz_config_file],
+        output='screen'
+    )
+
+    return LaunchDescription([
+        map_yaml_file,
+        bt_xml_arg,
+        use_sim_time,
+        
+        mirs_hardware_launch,
+        nav2_bringup_launch,
+        camera_node,
+        real_mission_launch,
+        static_tf_map_odom, # 追加
+        # landmark_localizer は起動しない
+        rviz_node
+    ])

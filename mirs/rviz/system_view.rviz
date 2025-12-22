@@ -6,15 +6,9 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /Odometry1
-        - /Odometry2
-        - /Pose1
-        - /PointCloud21
-        - /Polygon1
-        - /Path1
         - /TF1
       Splitter Ratio: 0.5
-    Tree Height: 787
+    Tree Height: 93
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -57,6 +51,7 @@ Visualization Manager:
       Topic:
         Depth: 5
         Durability Policy: Volatile
+        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /map
@@ -67,7 +62,7 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /map_updates
       Use Timestamp: false
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -95,10 +90,10 @@ Visualization Manager:
       Topic:
         Depth: 5
         Durability Policy: Volatile
+        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Best Effort
         Value: /scan
-      Transform Tolerance: 0.5
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -136,6 +131,7 @@ Visualization Manager:
       Topic:
         Depth: 5
         Durability Policy: Volatile
+        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /odometry/global
@@ -174,11 +170,15 @@ Visualization Manager:
       Topic:
         Depth: 5
         Durability Policy: Volatile
+        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /odometry/local
       Value: true
-    - Class: rviz_default_plugins/Pose
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.10000000149011612
+      Class: rviz_default_plugins/Pose
       Color: 0; 255; 0
       Enabled: true
       Head Length: 0.30000001192092896
@@ -190,6 +190,7 @@ Visualization Manager:
       Topic:
         Depth: 5
         Durability Policy: Volatile
+        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /landmark_pose
@@ -221,9 +222,12 @@ Visualization Manager:
       Topic:
         Depth: 5
         Durability Policy: Volatile
+        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Best Effort
         Value: /confirmed_cones
+      Use Fixed Frame: true
+      Use rainbow: true
       Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
@@ -252,9 +256,12 @@ Visualization Manager:
       Topic:
         Depth: 5
         Durability Policy: Volatile
+        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Best Effort
         Value: /accumulated_cones
+      Use Fixed Frame: true
+      Use rainbow: true
       Value: true
     - Alpha: 1
       Class: rviz_default_plugins/Polygon
@@ -264,11 +271,13 @@ Visualization Manager:
       Topic:
         Depth: 5
         Durability Policy: Volatile
+        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /cone_area
       Value: true
     - Alpha: 1
+      Buffer Length: 1
       Class: rviz_default_plugins/Path
       Color: 255; 0; 255
       Enabled: true
@@ -282,11 +291,15 @@ Visualization Manager:
         X: 0
         Y: 0
         Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
       Topic:
         Depth: 5
         Durability Policy: Volatile
+        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /plan
@@ -296,11 +309,17 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        base_footprint:
+          Value: true
+        base_link:
+          Value: true
+        camera:
+          Value: true
+        laser:
+          Value: true
         map:
           Value: true
         odom:
-          Value: true
-        base_link:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -310,7 +329,11 @@ Visualization Manager:
       Tree:
         map:
           odom:
-            {}
+            base_link:
+              camera:
+                {}
+              laser:
+                {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -324,19 +347,21 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /robot_description
-      Enabled: true
+      Enabled: false
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+      Mass Properties:
+        Inertia: false
+        Mass: false
       Name: RobotModel
       TF Prefix: ""
       Update Interval: 0
-      Value: true
+      Value: false
       Visual Enabled: true
-      Enabled: false
     - Class: rviz_default_plugins/Image
       Enabled: true
       Max Value: 1
@@ -387,14 +412,73 @@ Visualization Manager:
       Position Transformer: XYZ
       Selectable: true
       Size (Pixels): 10
-      Size (m): 0.01
+      Size (m): 0.009999999776482582
       Style: Points
       Topic:
         Depth: 5
         Durability Policy: Volatile
+        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Best Effort
         Value: /color_regions
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz_default_plugins/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /local_plan
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz_default_plugins/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /coverage_path
       Value: true
   Enabled: true
   Global Options:
@@ -409,6 +493,9 @@ Visualization Manager:
     - Class: rviz_default_plugins/Measure
       Line color: 128; 128; 0
     - Class: rviz_default_plugins/SetInitialPose
+      Covariance x: 0.25
+      Covariance y: 0.25
+      Covariance yaw: 0.06853891909122467
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -458,11 +545,22 @@ Visualization Manager:
       Yaw: 3.1253974437713623
     Saved: ~
 Window Geometry:
+  Camera Image:
+    collapsed: false
+  Color Mask:
+    collapsed: false
   Displays:
     collapsed: false
   Height: 1016
   Hide Left Dock: false
   Hide Right Dock: true
-  Width: 1848
-  X: 72
+  QMainWindow State: 000000ff00000000fd0000000100000000000001cb0000039efc0200000006fb000000140043006f006c006f00720020004d00610073006b010000003d0000008a0000002800fffffffb0000001800430061006d00650072006100200049006d00610067006501000000cd000000890000002800fffffffb000000100044006900730070006c006100790073010000015c000000e8000000c900fffffffb0000001200530065006c0065006300740069006f006e010000024a000000710000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007301000002c1000000700000005c00fffffffb0000000a005600690065007700730100000337000000a4000000a400ffffff000005690000039e00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Selection:
+    collapsed: false
+  Tool Properties:
+    collapsed: false
+  Views:
+    collapsed: false
+  Width: 1850
+  X: 70
   Y: 27
