@@ -71,7 +71,12 @@ def generate_launch_description():
         package='v4l2_camera',
         executable='v4l2_camera_node',
         name='v4l2_camera',
-        parameters=[{'video_device': '/dev/video2', 'frame_id': 'camera'}],
+        parameters=[{
+            'video_device': '/dev/video2',
+            'frame_id': 'camera',
+            'io_method': 'mmap',
+            'pixel_format': 'YUYV'
+        }],
         remappings=[
             ('image_raw', '/camera/color/image_raw'), # real_missionに合わせてリマップ
             ('camera_info', '/camera/color/camera_info')
@@ -113,20 +118,39 @@ def generate_launch_description():
     )
 
     # Delay Landmark Localizer to wait for TF tree to be ready
-    delayed_landmark_localizer_node = TimerAction(
-        period=5.0,
-        actions=[landmark_localizer_node]
+    # --- 7. Groot (v1) ---
+    launch_groot_arg = DeclareLaunchArgument(
+        'launch_groot',
+        default_value='true',
+        description='Launch Groot for behavior tree visualization'
+    )
+
+    from launch.actions import ExecuteProcess
+    from launch.conditions import IfCondition
+
+    groot_process = ExecuteProcess(
+        cmd=[
+            '/home/sawara/mirs_ws/Groot/build/Groot',
+            '--mode', 'monitor',
+            '--publisher_port', '2666',
+            '--server_port', '2667',
+            '--autoconnect'
+        ],
+        output='screen',
+        condition=IfCondition(LaunchConfiguration('launch_groot'))
     )
 
     return LaunchDescription([
         map_yaml_file,
         bt_xml_arg,
         use_sim_time,
+        launch_groot_arg,
         
         mirs_hardware_launch,
         nav2_bringup_launch,
         camera_node,
         real_mission_launch,
         delayed_landmark_localizer_node,
-        rviz_node
+        rviz_node,
+        groot_process
     ])
