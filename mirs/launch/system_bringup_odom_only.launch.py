@@ -38,6 +38,13 @@ def generate_launch_description():
         description='Use simulated clock if true'
     )
 
+    # 4. ログレベル
+    log_level = DeclareLaunchArgument(
+        'log_level',
+        default_value='info',
+        description='Log level for Nav2 nodes'
+    )
+
     # --- 1. ハードウェア & 基本システム (mirs.launch.py) ---
     # EKFパラメータを odom_only 版に差し替えるために、launch引数で上書きする
     # mirs.launch.py が ekf_config_file 引数を受け取るように修正が必要だが、
@@ -70,6 +77,7 @@ def generate_launch_description():
         launch_arguments={
             'use_sim_time': LaunchConfiguration('use_sim_time'),
             'params_file': nav2_params_file,
+            'log_level': LaunchConfiguration('log_level'),
         }.items()
     )
 
@@ -146,6 +154,7 @@ def generate_launch_description():
         map_yaml_file,
         bt_xml_arg,
         use_sim_time,
+        log_level,
         launch_groot_arg,
         
         mirs_hardware_launch,
