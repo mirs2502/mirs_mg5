@@ -105,7 +105,8 @@ def generate_launch_description():
         ),
         launch_arguments={
             'bt_xml_path': LaunchConfiguration('bt_xml_path'),
-            'use_sim_time': LaunchConfiguration('use_sim_time')
+            'use_sim_time': LaunchConfiguration('use_sim_time'),
+            'use_lidar_only': 'true' # Enable Lidar-only mode
         }.items()
     )
 
