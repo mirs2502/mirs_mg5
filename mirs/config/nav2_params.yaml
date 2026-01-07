@@ -135,8 +135,8 @@ controller_server:
     general_goal_checker:
       stateful: True
       plugin: "nav2_controller::SimpleGoalChecker"
-      xy_goal_tolerance: 0.25
-      yaw_goal_tolerance: 0.2
+      xy_goal_tolerance: 0.4
+      yaw_goal_tolerance: 6.28
     # DWB parameters
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
@@ -145,15 +145,15 @@ controller_server:
       min_vel_y: 0.0
       max_vel_x: 0.2
       max_vel_y: 0.0
-      max_vel_theta: 0.5
-      min_speed_xy: 0.0
+      max_vel_theta: 0.15
+      min_speed_xy: 0.05
       max_speed_xy: 0.2
-      min_speed_theta: 0.2
+      min_speed_theta: 0.05
       # Add high threshold velocity for turtlebot 3 issue.
       # https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/75
       acc_lim_x: 0.5
       acc_lim_y: 0.0
-      acc_lim_theta: 0.5
+      acc_lim_theta: 0.2
       decel_lim_x: -0.5
       decel_lim_y: 0.0
       decel_lim_theta: -1.0
@@ -165,60 +165,37 @@ controller_server:
       angular_granularity: 0.025
       transform_tolerance: 0.2
       xy_goal_tolerance: 0.25
-      trans_stopped_velocity: 0.25
+      trans_stopped_velocity: 0.01
       short_circuit_trajectory_evaluation: True
       stateful: True
-      critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
+      critics: ["Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
       BaseObstacle.scale: 0.02
-      PathAlign.scale: 64.0
+      PathAlign.scale: 8.0
       PathAlign.forward_point_distance: 0.1
-      GoalAlign.scale: 24.0
+      GoalAlign.scale: 6.0
       GoalAlign.forward_point_distance: 0.1
       PathDist.scale: 64.0
       GoalDist.scale: 12.0
-      RotateToGoal.scale: 32.0
+      RotateToGoal.scale: 3.0
       RotateToGoal.slowing_factor: 5.0
       RotateToGoal.lookahead_time: -1.0
 
     CoverageController:
-      plugin: "dwb_core::DWBLocalPlanner"
-      debug_trajectory_details: True
-      min_vel_x: 0.0
-      min_vel_y: 0.0
-      max_vel_x: 0.2
-      max_vel_y: 0.0
-      max_vel_theta: 0.5
-      min_speed_xy: 0.0
-      max_speed_xy: 0.2
-      min_speed_theta: 0.2
-      acc_lim_x: 0.5
-      acc_lim_y: 0.0
-      acc_lim_theta: 0.5
-      decel_lim_x: -0.5
-      decel_lim_y: 0.0
-      decel_lim_theta: -1.0
-      vx_samples: 20
-      vy_samples: 5
-      vtheta_samples: 20
-      sim_time: 1.7
-      linear_granularity: 0.05
-      angular_granularity: 0.025
-      transform_tolerance: 0.2
-      xy_goal_tolerance: 0.25
-      trans_stopped_velocity: 0.25
-      short_circuit_trajectory_evaluation: True
-      stateful: True
-      critics: ["RotateToGoal", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
-      BaseObstacle.scale: 0.02
-      PathAlign.scale: 8.0
-      PathAlign.forward_point_distance: 0.3
-      GoalAlign.scale: 0.0
-      GoalAlign.forward_point_distance: 0.1
-      PathDist.scale: 16.0
-      GoalDist.scale: 16.0
-      RotateToGoal.scale: 8.0
-      RotateToGoal.slowing_factor: 5.0
-      RotateToGoal.lookahead_time: -1.0
+      plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
+      desired_linear_vel: 0.2
+      lookahead_dist: 0.4
+      min_lookahead_dist: 0.3
+      max_lookahead_dist: 0.6
+      lookahead_time: 1.5
+      rotate_to_heading_at_start: true
+      transform_tolerance: 0.1
+      use_velocity_scaled_lookahead_dist: true
+      min_approach_linear_velocity: 0.05
+      approach_velocity_scaling_dist: 0.6
+      # カーブでの減速設定
+      use_regulated_linear_velocity_scaling: true
+      regulated_linear_scaling_min_radius: 0.9
+      regulated_linear_scaling_min_speed: 0.05
 
 local_costmap:
   local_costmap:
@@ -372,9 +349,9 @@ behavior_server:
     transform_tolerance: 0.1
     use_sim_time: false
     simulate_ahead_time: 2.0
-    max_rotational_vel: 0.5
-    min_rotational_vel: 0.2
-    rotational_acc_lim: 1.0
+    max_rotational_vel: 0.15
+    min_rotational_vel: 0.05
+    rotational_acc_lim: 0.5
 
 robot_state_publisher:
   ros__parameters:
@@ -397,10 +374,10 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [0.2, 0.0, 0.5]
+    max_velocity: [0.2, 0.0, 0.15]
     min_velocity: [-0.2, 0.0, -0.5]
-    max_accel: [0.5, 0.0, 0.5]
-    max_decel: [-0.5, 0.0, -0.5]
+    max_accel: [0.2, 0.0, 0.2]
+    max_decel: [-0.2, 0.0, -0.2]
     odom_topic: "odom"
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
