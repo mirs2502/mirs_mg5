@@ -199,7 +199,7 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 10.0
-        inflation_radius: 0.55  # 0.2 -> 0.55 (ロボット半径0.26mより大きくする)
+        inflation_radius: 0.3  # 0.55 -> 0.3 (エラー回避の最小限)
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: True
@@ -266,7 +266,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 10.0
-        inflation_radius: 0.55  # 0.2 -> 0.55 (ロボット半径0.26mより大きくする)
+        inflation_radius: 0.3  # 0.55 -> 0.3 (エラー回避の最小限)
       always_send_full_costmap: True
 
 map_server:
