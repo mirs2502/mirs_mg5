@@ -11,12 +11,12 @@ parameter_publisher:
     wheel_radius: 0.0391
     wheel_base: 0.424
     
-    rkp : 172.5
-    rki : 40.0   
-    rkd : 2.0
-    lkp : 172.5  # 20.0 から 172.5 に変更（左右対称化）
-    lki : 40.0
-    lkd : 2.0
+    rkp : 60.0
+    rki : 30.0
+    rkd : 10.0
+    lkp : 60.0
+    lki : 30.0
+    lkd : 10.0
     
     
     
