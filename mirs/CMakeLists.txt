@@ -70,6 +70,7 @@ install(TARGETS
 install(PROGRAMS
   scripts/odom_linear_test.py
   scripts/odom_rotate_test.py
+  scripts/trajectory_publisher.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

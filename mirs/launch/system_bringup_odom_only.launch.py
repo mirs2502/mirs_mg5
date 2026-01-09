@@ -45,6 +45,18 @@ def generate_launch_description():
         description='Log level for Nav2 nodes'
     )
 
+    # 5. ポート設定
+    esp_port = DeclareLaunchArgument(
+        'esp_port',
+        default_value='/dev/serial/by-id/usb-Silicon_Labs_CP2102N_USB_to_UART_Bridge_Controller_44dcbf303dfbeb1193273ca4c6d924ec-if00-port0',
+        description='ESP32 USB port'
+    )
+    lidar_port = DeclareLaunchArgument(
+        'lidar_port',
+        default_value='/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_947ec7a9868124459631e474f6875e54-if00-port0',
+        description='LiDAR USB port'
+    )
+
     # --- 1. ハードウェア & 基本システム (mirs.launch.py) ---
     # EKFパラメータを odom_only 版に差し替えるために、launch引数で上書きする
     # mirs.launch.py が ekf_config_file 引数を受け取るように修正が必要だが、
@@ -63,7 +75,9 @@ def generate_launch_description():
             os.path.join(mirs_pkg, 'launch', 'mirs_odom_only.launch.py')
         ),
         launch_arguments={
-            'use_sim_time': LaunchConfiguration('use_sim_time')
+            'use_sim_time': LaunchConfiguration('use_sim_time'),
+            'esp_port': LaunchConfiguration('esp_port'),
+            'lidar_port': LaunchConfiguration('lidar_port')
         }.items()
     )
 
@@ -106,7 +120,8 @@ def generate_launch_description():
         launch_arguments={
             'bt_xml_path': LaunchConfiguration('bt_xml_path'),
             'use_sim_time': LaunchConfiguration('use_sim_time'),
-            'use_lidar_only': 'false' # カメラフュージョンを有効化
+            'use_lidar_only': 'false', # カメラフュージョンを有効化
+            'use_rectangle_path': 'true' # 四角形経路を使用
         }.items()
     )
 
@@ -117,6 +132,14 @@ def generate_launch_description():
         executable='static_transform_publisher',
         name='static_transform_publisher_map_odom',
         arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
+    )
+
+    # --- 5.5 Trajectory Publisher ---
+    trajectory_publisher = Node(
+        package='mirs',
+        executable='trajectory_publisher.py',
+        name='trajectory_publisher',
+        output='screen'
     )
 
     # --- 6. RViz2 ---
@@ -163,6 +186,7 @@ def generate_launch_description():
         camera_node,
         real_mission_launch,
         static_tf_map_odom,
+        trajectory_publisher,
         # landmark_localizer は起動しない
         rviz_node,
         groot_process
