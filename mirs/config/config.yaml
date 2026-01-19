@@ -9,7 +9,7 @@ parameter_publisher:
   ros__parameters:
     # ESP32に渡すためのパラメータ
     wheel_radius: 0.0391
-    wheel_base: 0.424
+    wheel_base: 0.407
     
     rkp : 60.0
     rki : 30.0
