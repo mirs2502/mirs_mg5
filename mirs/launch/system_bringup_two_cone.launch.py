@@ -2,9 +2,10 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, ExecuteProcess
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
+from launch.conditions import IfCondition
 from launch_ros.actions import Node
 
 def generate_launch_description():
@@ -23,8 +24,8 @@ def generate_launch_description():
         description='Full path to map file to load'
     )
 
-    # 2. Behavior Tree XML (Odom Only版)
-    default_bt_xml_path = os.path.join(bt_pkg, 'behavior_tree', 'bt_mission_odom_only.xml')
+    # 2. Behavior Tree XML (2コーン往復版)
+    default_bt_xml_path = os.path.join(bt_pkg, 'behavior_tree', 'bt_two_cone.xml')
     bt_xml_arg = DeclareLaunchArgument(
         'bt_xml_path',
         default_value=default_bt_xml_path,
@@ -57,19 +58,7 @@ def generate_launch_description():
         description='LiDAR USB port'
     )
 
-    # --- 1. ハードウェア & 基本システム (mirs.launch.py) ---
-    # EKFパラメータを odom_only 版に差し替えるために、launch引数で上書きする
-    # mirs.launch.py が ekf_config_file 引数を受け取るように修正が必要だが、
-    # 既存ファイルを変更しない方針のため、ここでは mirs.launch.py の中身を展開するか、
-    # あるいは mirs.launch.py がパラメータ引数に対応しているか確認が必要。
-    # 確認したところ mirs.launch.py は ekf_config_path を受け取っていない可能性が高い。
-    # そのため、mirs.launch.py を使わず、ここで個別にノードを立ち上げるか、
-    # mirs.launch.py をコピーして mirs_odom_only.launch.py を作る必要がある。
-    # ここでは安全のため mirs_odom_only.launch.py を作成し、それを呼び出す形にする。
-    
-    # ※ Implementation Plan にはなかったが、mirs.launch.py のパラメータ差し替えが必要なため、
-    # mirs_odom_only.launch.py を作成するステップを追加で行う。
-    
+    # --- 1. ハードウェア & 基本システム (mirs_odom_only.launch.py) ---
     mirs_hardware_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(mirs_pkg, 'launch', 'mirs_odom_only.launch.py')
@@ -83,7 +72,7 @@ def generate_launch_description():
 
     # --- 2. ナビゲーション (Nav2) ---
     nav2_params_file = os.path.join(mirs_pkg, 'config', 'nav2_params.yaml')
-    
+
     nav2_bringup_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(nav2_bringup_pkg, 'launch', 'navigation_launch.py')
@@ -113,16 +102,15 @@ def generate_launch_description():
         ]
     )
 
-    # --- 4. 認識・計画・BT (real_mission.launch.py) ---
-    real_mission_launch = IncludeLaunchDescription(
+    # --- 4. 2コーン往復ミッション (two_cone_mission.launch.py) ---
+    two_cone_mission_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(bt_pkg, 'launch', 'real_mission.launch.py')
+            os.path.join(bt_pkg, 'launch', 'two_cone_mission.launch.py')
         ),
         launch_arguments={
             'bt_xml_path': LaunchConfiguration('bt_xml_path'),
             'use_sim_time': LaunchConfiguration('use_sim_time'),
-            'use_lidar_only': 'false', # カメラフュージョンを有効化
-            'use_rectangle_path': 'true' # 四角形経路を使用
+            'use_lidar_only': 'false'  # カメラフュージョンを有効化
         }.items()
     )
 
@@ -160,9 +148,6 @@ def generate_launch_description():
         description='Launch Groot for behavior tree visualization'
     )
 
-    from launch.actions import ExecuteProcess
-    from launch.conditions import IfCondition
-
     groot_process = ExecuteProcess(
         cmd=[
             '/home/yzksy/mirs_ws/install/groot/lib/groot/Groot',
@@ -183,14 +168,13 @@ def generate_launch_description():
         esp_port,
         lidar_port,
         launch_groot_arg,
-        
+
         mirs_hardware_launch,
         nav2_bringup_launch,
         camera_node,
-        real_mission_launch,
+        two_cone_mission_launch,
         static_tf_map_odom,
         trajectory_publisher,
-        # landmark_localizer は起動しない
         rviz_node,
         groot_process
     ])

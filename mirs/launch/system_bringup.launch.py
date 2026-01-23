@@ -38,6 +38,32 @@ def generate_launch_description():
         description='Use simulated clock if true'
     )
 
+    # 4. ログレベル
+    log_level = DeclareLaunchArgument(
+        'log_level',
+        default_value='info',
+        description='Log level for Nav2 nodes'
+    )
+
+    # 5. 経路生成モード (Zigzag vs Rectangle)
+    use_rectangle_path = DeclareLaunchArgument(
+        'use_rectangle_path',
+        default_value='true',
+        description='If true, use rectangle generator (Oomawari) instead of zigzag generator'
+    )
+
+    # 6. ポート設定
+    esp_port = DeclareLaunchArgument(
+        'esp_port',
+        default_value='/dev/serial/by-id/usb-Silicon_Labs_CP2102N_USB_to_UART_Bridge_Controller_44dcbf303dfbeb1193273ca4c6d924ec-if00-port0',
+        description='ESP32 USB port'
+    )
+    lidar_port = DeclareLaunchArgument(
+        'lidar_port',
+        default_value='/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_947ec7a9868124459631e474f6875e54-if00-port0',
+        description='LiDAR USB port'
+    )
+
     # --- 1. ハードウェア & 基本システム (mirs.launch.py) ---
     # 含まれるもの: Micro-ROS, LiDAR, EKF(Local/Global), URDF(Robot State Publisher)
     mirs_hardware_launch = IncludeLaunchDescription(
@@ -45,7 +71,9 @@ def generate_launch_description():
             os.path.join(mirs_pkg, 'launch', 'mirs.launch.py')
         ),
         launch_arguments={
-            'use_sim_time': LaunchConfiguration('use_sim_time')
+            'use_sim_time': LaunchConfiguration('use_sim_time'),
+            'esp_port': LaunchConfiguration('esp_port'),
+            'lidar_port': LaunchConfiguration('lidar_port')
         }.items()
     )
 
@@ -61,7 +89,7 @@ def generate_launch_description():
         launch_arguments={
             'use_sim_time': LaunchConfiguration('use_sim_time'),
             'params_file': nav2_params_file,
-            # 'use_robot_state_pub': 'False' # 必要に応じて有効化
+            'log_level': LaunchConfiguration('log_level'),
         }.items()
     )
 
@@ -75,7 +103,8 @@ def generate_launch_description():
             'video_device': '/dev/video2',
             'frame_id': 'camera',
             'io_method': 'mmap',
-            'pixel_format': 'YUYV'
+            'pixel_format': 'YUYV',
+            'camera_info_url': 'file://' + os.path.join(cone_detector_pkg, 'config', 'camera.yaml')
         }],
         remappings=[
             ('image_raw', '/camera/color/image_raw'), # real_missionに合わせてリマップ
@@ -93,7 +122,8 @@ def generate_launch_description():
         ),
         launch_arguments={
             'bt_xml_path': LaunchConfiguration('bt_xml_path'),
-            'use_sim_time': LaunchConfiguration('use_sim_time')
+            'use_sim_time': LaunchConfiguration('use_sim_time'),
+            'use_rectangle_path': LaunchConfiguration('use_rectangle_path')
         }.items()
     )
 
@@ -118,6 +148,11 @@ def generate_launch_description():
     )
 
     # Delay Landmark Localizer to wait for TF tree to be ready
+    delayed_landmark_localizer_node = TimerAction(
+        period=5.0,
+        actions=[landmark_localizer_node]
+    )
+
     # --- 7. Groot (v1) ---
     launch_groot_arg = DeclareLaunchArgument(
         'launch_groot',
@@ -130,7 +165,7 @@ def generate_launch_description():
 
     groot_process = ExecuteProcess(
         cmd=[
-            '/home/sawara/mirs_ws/Groot/build/Groot',
+            '/home/yzksy/mirs_ws/install/groot/lib/groot/Groot',
             '--mode', 'monitor',
             '--publisher_port', '2666',
             '--server_port', '2667',
@@ -144,8 +179,12 @@ def generate_launch_description():
         map_yaml_file,
         bt_xml_arg,
         use_sim_time,
+        log_level,
+        use_rectangle_path,
+        esp_port,
+        lidar_port,
         launch_groot_arg,
-        
+
         mirs_hardware_launch,
         nav2_bringup_launch,
         camera_node,
