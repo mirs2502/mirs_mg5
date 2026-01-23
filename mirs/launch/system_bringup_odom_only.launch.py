@@ -104,7 +104,8 @@ def generate_launch_description():
             'video_device': '/dev/video2',
             'frame_id': 'camera',
             'io_method': 'mmap',
-            'pixel_format': 'YUYV'
+            'pixel_format': 'YUYV',
+            'camera_info_url': 'file://' + os.path.join(cone_detector_pkg, 'config', 'camera.yaml')
         }],
         remappings=[
             ('image_raw', '/camera/color/image_raw'),
@@ -179,6 +180,8 @@ def generate_launch_description():
         bt_xml_arg,
         use_sim_time,
         log_level,
+        esp_port,
+        lidar_port,
         launch_groot_arg,
         
         mirs_hardware_launch,
