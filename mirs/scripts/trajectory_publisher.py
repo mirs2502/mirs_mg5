@@ -19,6 +19,10 @@ class TrajectoryPublisher(Node):
         
         self.last_pose = None
         self.min_distance = 0.05 # 5cm以上動いたら記録
+        
+        # ジャンプ判定用
+        self.jump_candidate = None
+        self.jump_count = 0
 
     def odom_callback(self, msg):
         current_pose = msg.pose.pose
@@ -29,10 +33,34 @@ class TrajectoryPublisher(Node):
 
         dist = self.calculate_distance(self.last_pose, current_pose)
 
-        # 異常値フィルタ: 0.5m以上一気に飛んだらノイズとみなして無視
+        # 異常値フィルタ: 0.5m以上一気に飛んだらノイズの可能性
         if dist > 0.5:
-            # self.get_logger().warn(f'Jump detected ({dist:.2f}m). Ignoring.')
-            return
+            # 連続して同じ場所にいるかチェック
+            if self.jump_candidate is None:
+                self.jump_candidate = current_pose
+                self.jump_count = 1
+            else:
+                # 候補位置との距離が近ければ（安定していれば）カウントアップ
+                candidate_dist = self.calculate_distance(self.jump_candidate, current_pose)
+                if candidate_dist < 0.1:
+                    self.jump_count += 1
+                else:
+                    # 違う場所に飛んだらリセット
+                    self.jump_candidate = current_pose
+                    self.jump_count = 1
+            
+            # 5回連続（約0.5秒）安定したら、それを正とする
+            if self.jump_count > 5:
+                # self.get_logger().info('Jump accepted. Updating pose.')
+                self.last_pose = current_pose
+                self.jump_candidate = None
+                self.jump_count = 0
+            
+            return # 今回は描画しない
+
+        # 正常範囲内なら候補はリセット
+        self.jump_candidate = None
+        self.jump_count = 0
 
         # 一定距離動いたら記録
         if dist > self.min_distance:
