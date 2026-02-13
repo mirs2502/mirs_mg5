@@ -151,10 +151,10 @@ def generate_launch_description():
 
     # Delay Landmark Localizer to wait for TF tree to be ready
     # COMMENTED OUT: landmark_localizerを無効化
-     delayed_landmark_localizer_node = TimerAction(
-         period=5.0,
-         actions=[landmark_localizer_node]
-     )
+    # delayed_landmark_localizer_node = TimerAction(
+    #     period=5.0,
+    #     actions=[landmark_localizer_node]
+    # )
 
     # --- 7. Groot (v1) ---
     launch_groot_arg = DeclareLaunchArgument(
@@ -192,7 +192,7 @@ def generate_launch_description():
         nav2_bringup_launch,
         camera_node,
         real_mission_launch,
-     delayed_landmark_localizer_node,  # COMMENTED OUT: landmark_localizer無効化
+        # delayed_landmark_localizer_node,  # COMMENTED OUT: landmark_localizer無効化
         rviz_node,
         groot_process
     ])
