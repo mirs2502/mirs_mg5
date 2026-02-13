@@ -21,11 +21,12 @@ ekf_filter_node_global:
     odom0_relative: false
 
     # --- 入力2: ランドマーク位置推定 ---
-    pose0: /landmark_pose
-    pose0_config: [true,  true,  false,
-                   false, false, true,
-                   false, false, false,
-                   false, false, false,
-                   false, false, false]
-    pose0_differential: false
-    pose0_relative: false
+    # COMMENTED OUT: landmark_localizerを無効化したため
+    # pose0: /landmark_pose
+    # pose0_config: [true,  true,  false,
+    #                false, false, true,
+    #                false, false, false,
+    #                false, false, false,
+    #                false, false, false]
+    # pose0_differential: false
+    # pose0_relative: false

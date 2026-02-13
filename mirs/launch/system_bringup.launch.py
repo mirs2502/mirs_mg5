@@ -1,8 +1,9 @@
 import os
 
-from ament_index_python.packages import get_package_share_directory
+from ament_index_python.packages import get_package_share_directory, get_package_prefix
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction, ExecuteProcess
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
@@ -129,13 +130,14 @@ def generate_launch_description():
 
     # --- 5. 自己位置補正 (Landmark Localizer) ---
     # Nav2の地図座標系(map)と、認識したコーン配置を照合して補正
+    # COMMENTED OUT: landmark_localizerに設計上の問題があるため一時的に無効化
     landmark_localizer_node = Node(
-        package='cone_detector',
-        executable='landmark_localizer',
-        name='landmark_localizer',
-        output='screen',
-        parameters=[{'min_shared_landmarks': 1}]
-    )
+         package='cone_detector',
+         executable='landmark_localizer',
+         name='landmark_localizer',
+         output='screen',
+         parameters=[{'min_shared_landmarks': 1}]
+     )
 
     # --- 6. RViz2 ---
     rviz_config_file = os.path.join(mirs_pkg, 'rviz', 'system_view.rviz')
@@ -148,10 +150,11 @@ def generate_launch_description():
     )
 
     # Delay Landmark Localizer to wait for TF tree to be ready
-    delayed_landmark_localizer_node = TimerAction(
-        period=5.0,
-        actions=[landmark_localizer_node]
-    )
+    # COMMENTED OUT: landmark_localizerを無効化
+     delayed_landmark_localizer_node = TimerAction(
+         period=5.0,
+         actions=[landmark_localizer_node]
+     )
 
     # --- 7. Groot (v1) ---
     launch_groot_arg = DeclareLaunchArgument(
@@ -160,12 +163,12 @@ def generate_launch_description():
         description='Launch Groot for behavior tree visualization'
     )
 
-    from launch.actions import ExecuteProcess
-    from launch.conditions import IfCondition
+    groot_prefix = get_package_prefix('groot')
+    groot_executable = os.path.join(groot_prefix, 'lib', 'groot', 'Groot')
 
     groot_process = ExecuteProcess(
         cmd=[
-            '/home/yzksy/mirs_ws/install/groot/lib/groot/Groot',
+            groot_executable,
             '--mode', 'monitor',
             '--publisher_port', '2666',
             '--server_port', '2667',
@@ -189,7 +192,7 @@ def generate_launch_description():
         nav2_bringup_launch,
         camera_node,
         real_mission_launch,
-        delayed_landmark_localizer_node,
+     delayed_landmark_localizer_node,  # COMMENTED OUT: landmark_localizer無効化
         rviz_node,
         groot_process
     ])

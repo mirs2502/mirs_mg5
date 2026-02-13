@@ -237,7 +237,7 @@ local_costmap:
       cone_layer:
         plugin: "cone_detector::ConeCostmapLayer"
         enabled: True
-        cone_inflation_radius: 0.16
+        cone_inflation_radius: 0.35  # ロボット半対角線0.35m（ぶつかっても手動で対処可能）
         cone_topic: "/accumulated_cones"
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
@@ -289,7 +289,7 @@ global_costmap:
       cone_layer:
         plugin: "cone_detector::ConeCostmapLayer"
         enabled: True
-        cone_inflation_radius: 0.16
+        cone_inflation_radius: 0.35  # ロボット半対角線0.35m（ぶつかっても手動で対処可能）
         cone_topic: "/accumulated_cones"
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"

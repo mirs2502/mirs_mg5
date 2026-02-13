@@ -1,6 +1,6 @@
 import os
 
-from ament_index_python.packages import get_package_share_directory
+from ament_index_python.packages import get_package_share_directory, get_package_prefix
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, ExecuteProcess
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -148,9 +148,12 @@ def generate_launch_description():
         description='Launch Groot for behavior tree visualization'
     )
 
+    groot_prefix = get_package_prefix('groot')
+    groot_executable = os.path.join(groot_prefix, 'lib', 'groot', 'Groot')
+
     groot_process = ExecuteProcess(
         cmd=[
-            '/home/yzksy/mirs_ws/install/groot/lib/groot/Groot',
+            groot_executable,
             '--mode', 'monitor',
             '--publisher_port', '2666',
             '--server_port', '2667',
